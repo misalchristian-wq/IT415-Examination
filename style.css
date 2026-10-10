@@ -34,6 +34,7 @@ h3 { font-size: 1rem; line-height: 1.4; }
 .workflow li span { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; background: var(--background); font-size: 0.75rem; font-weight: 700; }
 .workflow li[aria-current] { color: var(--brand); font-weight: 700; }
 .workflow li[aria-current] span { background: var(--brand); color: white; }
+.workflow li.step-complete span { background: var(--brand-soft); color: var(--brand); }
 .stage-notice { color: var(--muted); font-size: 0.85rem; padding: 15px 0 20px; }
 .pos-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(340px, 1fr); align-items: start; gap: var(--space); }
 .panel { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: var(--space); box-shadow: var(--shadow); }
@@ -60,6 +61,14 @@ table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 th { color: var(--muted); font-size: 0.75rem; font-weight: 650; padding: 10px 0; text-align: left; border-bottom: 1px solid var(--border); }
 td { padding: 13px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .quantity-column { text-align: center; }
+.cart-item { padding-right: 10px; }
+.cart-item strong { display: block; font-size: 0.8rem; }
+.unit-price { display: block; color: var(--muted); font-size: 0.75rem; margin-top: 4px; }
+.remove-item { margin-top: 6px; padding: 3px 7px; font-size: 0.7rem; }
+.quantity-controls { display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; }
+.quantity-button { border-color: var(--border); background: white; color: var(--brand); width: 28px; height: 30px; padding: 0; }
+.quantity-button:hover:enabled { background: var(--brand-soft); }
+.quantity-value { min-width: 20px; font-variant-numeric: tabular-nums; }
 .money { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .empty-row td { text-align: center; padding: 30px 12px; }
 .empty-row .muted { font-size: 0.8rem; }
@@ -74,6 +83,13 @@ input:disabled { background: var(--background); color: var(--muted); }
 .receipt-panel { grid-column: 1 / -1; }
 .receipt-content { border: 1px dashed #a7b8ab; border-radius: 9px; padding: 22px; background: #fcfdfb; font-size: 0.85rem; }
 .receipt-content > p { max-width: 750px; }
+.receipt-sheet { max-width: 620px; margin: 0 auto; font-family: ui-monospace, "Consolas", monospace; }
+.receipt-sheet h3 { text-align: center; }
+.receipt-reference { text-align: center; margin: 8px 0 18px; overflow-wrap: anywhere; }
+.receipt-table td:first-child { padding-right: 12px; }
+.receipt-totals { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 18px 0 0; }
+.receipt-totals dt, .receipt-totals dd { margin: 0; }
+.receipt-totals dt:first-child, .receipt-totals dd:nth-child(2) { font-weight: 750; }
 .payment-confirmation, .status-message { color: var(--brand-dark); background: var(--brand-soft); border: 1px solid #a3c5b2; padding: 12px; border-radius: 8px; }
 .payment-confirmation { margin-top: 16px; }
 .error-message { color: var(--error); background: #fff1f1; border: 1px solid #e3aaaa; padding: 12px; border-radius: 8px; }

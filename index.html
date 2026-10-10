@@ -16,7 +16,7 @@
                 <h1>Milk Tea &amp; Beverage Shop</h1>
                 <p class="subtitle">Point of sale · Cash transactions</p>
             </div>
-            <span class="stage-badge">Stage 1 · Interface preview</span>
+            <span class="stage-badge">Stage 2 · Ordering &amp; calculations</span>
         </header>
         <nav class="workflow" aria-label="Transaction progress">
             <ol>
@@ -27,7 +27,7 @@
                 <li><span>5</span> Receipt</li>
             </ol>
         </nav>
-        <p class="stage-notice" id="stage-notice">Interface preview: ordering will be enabled in Stage 2. Payment validation and final checks follow in Stage 3.</p>
+        <p class="stage-notice" id="stage-notice">Choose drinks, review your order, and enter cash to complete the sale. Use New Transaction to start again.</p>
         <noscript><p class="error-message">Enable JavaScript to display the drink menu and use the POS.</p></noscript>
         <p id="error-message" class="error-message" role="alert" hidden></p>
         <p id="status-message" class="status-message" role="status" hidden></p>
@@ -46,7 +46,7 @@
                         <span class="product-category"></span>
                         <h3></h3>
                         <p class="product-price"></p>
-                        <button type="button" class="button button-primary add-product" aria-describedby="stage-notice" disabled>Add to order <span aria-hidden="true">+</span></button>
+                        <button type="button" class="button button-primary add-product" disabled>Add to order <span aria-hidden="true">+</span></button>
                     </article>
                 </template>
             </section>
@@ -66,10 +66,10 @@
                     <div class="section-heading"><h2 id="payment-title">Cash payment</h2><span class="muted">PHP</span></div>
                     <form id="payment-form" novalidate>
                         <label for="cash-amount">Amount paid</label>
-                        <!-- Preserve raw input for clear nonnumeric validation in Stage 3. -->
-                        <input id="cash-amount" name="cash" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="e.g. 200.00" aria-describedby="cash-help">
+                        <!-- Preserve raw input so validation can reject nonnumeric mistakes. -->
+                        <input id="cash-amount" name="cash" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="e.g. 200.00" aria-describedby="cash-help error-message">
                         <p id="cash-help" class="field-help">Enter a numeric cash amount in pesos, up to two decimal places.</p>
-                        <button id="pay-button" type="submit" class="button button-primary full-width" aria-describedby="stage-notice" disabled>Confirm payment</button>
+                        <button id="pay-button" type="submit" class="button button-primary full-width" disabled>Confirm payment</button>
                     </form>
                     <div id="payment-confirmation" class="payment-confirmation" role="status" hidden></div>
                 </section>
@@ -77,7 +77,7 @@
             <section class="panel receipt-panel" aria-labelledby="receipt-title">
                 <div class="section-heading">
                     <div><p class="eyebrow">TRANSACTION RECORD</p><h2 id="receipt-title">Digital receipt</h2></div>
-                    <button id="new-transaction" type="button" class="button button-secondary" aria-describedby="stage-notice" disabled>New Transaction</button>
+                    <button id="new-transaction" type="button" class="button button-secondary" disabled>New Transaction</button>
                 </div>
                 <div id="receipt-content" class="receipt-content"><p class="muted">Your receipt will appear after a successful payment, with the items, quantities, subtotals, total, amount paid, change, and transaction reference.</p></div>
             </section>

@@ -16,7 +16,7 @@
                 <h1>Milk Tea &amp; Beverage Shop</h1>
                 <p class="subtitle">Point of sale · Cash transactions</p>
             </div>
-            <span class="stage-badge">Stage 2 · Ordering &amp; calculations</span>
+            <span class="stage-badge" id="transaction-state">Ready for new order</span>
         </header>
         <nav class="workflow" aria-label="Transaction progress">
             <ol>
@@ -68,10 +68,10 @@
                         <label for="cash-amount">Amount paid</label>
                         <!-- Preserve raw input so validation can reject nonnumeric mistakes. -->
                         <input id="cash-amount" name="cash" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="e.g. 200.00" aria-describedby="cash-help error-message">
-                        <p id="cash-help" class="field-help">Enter a numeric cash amount in pesos, up to two decimal places.</p>
+                        <p id="cash-help" class="field-help">Enter pesos with up to two decimals (e.g. 200.00 or ₱1,000.00). Maximum ₱100,000.00.</p>
                         <button id="pay-button" type="submit" class="button button-primary full-width" disabled>Confirm payment</button>
                     </form>
-                    <div id="payment-confirmation" class="payment-confirmation" role="status" hidden></div>
+                    <div id="payment-confirmation" class="payment-confirmation" role="status" aria-atomic="true" hidden></div>
                 </section>
             </div>
             <section class="panel receipt-panel" aria-labelledby="receipt-title">

@@ -40,13 +40,14 @@ function addToCart(cart, product) {
 }
 
 function changeQty(cart, id, delta) {
-    if (delta !== 1 && delta !== -1) return cart;
+    if ((delta !== 1 && delta !== -1) || !cart.some((line) => line.id === id)) return cart;
     return cart.map((line) => line.id === id
         ? { ...line, qty: Math.max(1, Math.min(MAX_QUANTITY, line.qty + delta)) }
         : line);
 }
 
 function removeFromCart(cart, id) {
+    if (!cart.some((line) => line.id === id)) return cart;
     return cart.filter((line) => line.id !== id);
 }
 
@@ -55,14 +56,15 @@ function computeTotal(cart) {
 }
 
 function validatePayment(raw, total) {
-    const amount = raw.trim();
-    // Do not let Number/parseFloat accept partial numbers or exponent notation.
-    if (!/^\d+(?:\.\d{1,2})?$/.test(amount)) {
+    // A leading peso sign and correctly grouped commas are optional.
+    const amount = typeof raw === "string" ? raw.trim().replace(/^₱\s*/, "") : "";
+    // Validate BEFORE stripping commas: "1,00" must never become "100".
+    if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(amount)) {
         return { ok: false, message: "Please enter a valid payment amount." };
     }
 
     // Parse pesos and cents separately so payment arithmetic stays integer-based.
-    const [pesos, cents = ""] = amount.split(".");
+    const [pesos, cents = ""] = amount.replaceAll(",", "").split(".");
     const paid = Number(pesos) * 100 + Number(cents.padEnd(2, "0"));
     if (!Number.isSafeInteger(paid) || paid > MAX_PAYMENT) {
         return { ok: false, message: "Payment cannot exceed ₱100,000.00." };
@@ -98,8 +100,10 @@ let cart = [];
 let receipt = null;
 let phase = "ORDERING";
 let transactionNumber = 0;
+let faulted = false;
 
 const ui = {
+    state: document.getElementById("transaction-state"),
     products: document.getElementById("product-grid"),
     cart: document.getElementById("cart-items"),
     total: document.getElementById("order-total"),
@@ -198,15 +202,19 @@ function setProgress(activeIndex) {
 }
 
 function renderControls() {
-    const locked = phase === "COMPLETED";
+    const locked = phase === "COMPLETED" || faulted;
+    ui.state.textContent = faulted ? "Reset required" : phase === "COMPLETED"
+        ? "Payment completed" : cart.length ? "Order in progress" : "Ready for new order";
     ui.products.querySelectorAll(".add-product").forEach((button) => {
         const line = cart.find((entry) => entry.id === Number(button.dataset.productId));
         button.disabled = locked || line?.qty === MAX_QUANTITY;
+        button.title = locked ? "Start a new transaction to add drinks."
+            : line?.qty === MAX_QUANTITY ? `Maximum quantity of ${MAX_QUANTITY} reached.` : "";
     });
     ui.cash.disabled = locked;
     ui.pay.disabled = locked;
     ui.newTransaction.disabled = false;
-    setProgress(locked ? 4 : cart.length ? 1 : 0);
+    setProgress(phase === "COMPLETED" ? 4 : cart.length ? 1 : 0);
 }
 
 function renderReceipt() {
@@ -265,29 +273,64 @@ function showStatus(message) {
     ui.status.hidden = false;
 }
 
-function showPaymentError(message) {
+function showPaymentError(message, invalidAmount = true) {
     clearMessages();
     ui.error.textContent = message;
     ui.error.hidden = false;
-    ui.cash.setAttribute("aria-invalid", "true");
-    ui.cash.focus();
+    if (invalidAmount) {
+        ui.cash.setAttribute("aria-invalid", "true");
+        ui.cash.focus();
+    } else {
+        ui.products.querySelector("button:enabled")?.focus();
+    }
 }
 
+// Unexpected errors stop further sales until the user explicitly resets.
+// Keep an already completed receipt intact; never silently retry a payment.
+function showUnexpectedError() {
+    faulted = true;
+    ui.state.textContent = "Reset required";
+    ui.status.hidden = true;
+    ui.status.textContent = "";
+    ui.error.textContent = "Something went wrong. Please start a new transaction.";
+    ui.error.hidden = false;
+    ui.cash.disabled = true;
+    ui.pay.disabled = true;
+    document.querySelectorAll(".add-product, #cart-items button").forEach((button) => {
+        button.disabled = true;
+    });
+    ui.newTransaction.disabled = false;
+    ui.newTransaction.focus();
+}
+
+function safe(handler) {
+    return (...args) => {
+        try {
+            return handler(...args);
+        } catch {
+            showUnexpectedError();
+        }
+    };
+}
+
+window.addEventListener("error", showUnexpectedError);
+window.addEventListener("unhandledrejection", showUnexpectedError);
+
 // EVENTS: delegated handlers also handle cart rows recreated after quantity edits.
-ui.products.addEventListener("click", (event) => {
+ui.products.addEventListener("click", safe((event) => {
     const button = event.target.closest(".add-product");
-    if (!button || button.disabled || phase !== "ORDERING") return;
+    if (!button || button.disabled || phase !== "ORDERING" || faulted) return;
     const product = PRODUCTS.find((entry) => entry.id === Number(button.dataset.productId));
     if (!product) return;
     cart = addToCart(cart, product);
     renderCart();
     renderControls();
     showStatus(`${product.name} added to cart.`);
-});
+}));
 
-ui.cart.addEventListener("click", (event) => {
+ui.cart.addEventListener("click", safe((event) => {
     const button = event.target.closest("button[data-action]");
-    if (!button || button.disabled || phase !== "ORDERING") return;
+    if (!button || button.disabled || phase !== "ORDERING" || faulted) return;
     const id = Number(button.dataset.productId);
     const action = button.dataset.action;
     if (!cart.some((line) => line.id === id)) return;
@@ -297,18 +340,21 @@ ui.cart.addEventListener("click", (event) => {
     } else return;
     renderCart();
     renderControls();
-    showStatus(action === "remove" ? "Item removed." : "Quantity updated.");
+    const line = cart.find((entry) => entry.id === id);
+    showStatus(action === "remove" ? "Item removed."
+        : line.qty === MAX_QUANTITY ? `Quantity updated. Maximum of ${MAX_QUANTITY} reached.` : "Quantity updated.");
     // Keep keyboard focus usable when the clicked row has just been rebuilt.
     const replacement = ui.cart.querySelector(`button[data-product-id="${id}"][data-action="${action}"]:enabled`)
+        || ui.cart.querySelector(`button[data-product-id="${id}"]:enabled`)
         || ui.cart.querySelector("button:enabled") || ui.products.querySelector("button:enabled");
     replacement?.focus();
-});
+}));
 
-ui.form.addEventListener("submit", (event) => {
+ui.form.addEventListener("submit", safe((event) => {
     event.preventDefault();
-    if (phase !== "ORDERING") return;
+    if (phase !== "ORDERING" || faulted) return;
     if (!cart.length) {
-        showPaymentError("Your cart is empty. Please add at least one product before paying.");
+        showPaymentError("Your cart is empty. Please add at least one product before paying.", false);
         return;
     }
     const result = validatePayment(ui.cash.value, computeTotal(cart));
@@ -328,28 +374,33 @@ ui.form.addEventListener("submit", (event) => {
     renderControls();
     renderReceipt();
     ui.newTransaction.focus();
-});
+}));
 
-ui.cash.addEventListener("input", () => {
-    if (phase === "ORDERING") clearMessages();
-});
-ui.cash.addEventListener("focus", () => {
-    if (phase === "ORDERING" && cart.length) setProgress(2);
-});
+ui.cash.addEventListener("input", safe(() => {
+    if (phase === "ORDERING" && !faulted) clearMessages();
+}));
+ui.cash.addEventListener("focus", safe(() => {
+    if (phase === "ORDERING" && cart.length && !faulted) setProgress(2);
+}));
 
-ui.newTransaction.addEventListener("click", () => {
+ui.newTransaction.addEventListener("click", safe(() => {
     cart = [];
     receipt = null;
     phase = "ORDERING";
+    faulted = false;
     ui.cash.value = "";
     clearMessages();
+    renderProducts();
     renderCart();
     renderControls();
     renderReceipt();
     ui.cash.focus();
-});
+}));
 
-renderProducts();
-renderCart();
-renderControls();
-renderReceipt();
+// Startup failures get the same visible recovery banner as event failures.
+safe(() => {
+    renderProducts();
+    renderCart();
+    renderControls();
+    renderReceipt();
+})();

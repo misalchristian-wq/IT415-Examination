@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>Milk Tea &amp; Beverage Shop POS</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+        <header class="app-header">
+            <div>
+                <p class="eyebrow">IT 415 · SCENARIO 3</p>
+                <h1>Milk Tea &amp; Beverage Shop</h1>
+                <p class="subtitle">Point of sale · Cash transactions</p>
+            </div>
+            <span class="stage-badge">Stage 1 · Interface preview</span>
+        </header>
+        <nav class="workflow" aria-label="Transaction progress">
+            <ol>
+                <li aria-current="step"><span>1</span> Browse</li>
+                <li><span>2</span> Cart</li>
+                <li><span>3</span> Payment</li>
+                <li><span>4</span> Confirm</li>
+                <li><span>5</span> Receipt</li>
+            </ol>
+        </nav>
+        <p class="stage-notice" id="stage-notice">Interface preview: ordering will be enabled in Stage 2. Payment validation and final checks follow in Stage 3.</p>
+        <noscript><p class="error-message">Enable JavaScript to display the drink menu and use the POS.</p></noscript>
+        <p id="error-message" class="error-message" role="alert" hidden></p>
+        <p id="status-message" class="status-message" role="status" hidden></p>
+
+        <main class="pos-layout">
+            <section class="panel menu-panel" aria-labelledby="menu-title">
+                <div class="section-heading">
+                    <div><p class="eyebrow">THE MENU</p><h2 id="menu-title">Choose your drinks</h2></div>
+                    <span class="muted">6 products</span>
+                </div>
+                <p class="section-description">Regular sizes for all milk teas and fruit tea.</p>
+                <div class="product-grid" id="product-grid"></div>
+                <!-- JavaScript clones this card for each hard-coded product. -->
+                <template id="product-template">
+                    <article class="product-card">
+                        <span class="product-category"></span>
+                        <h3></h3>
+                        <p class="product-price"></p>
+                        <button type="button" class="button button-primary add-product" aria-describedby="stage-notice" disabled>Add to order <span aria-hidden="true">+</span></button>
+                    </article>
+                </template>
+            </section>
+            <div class="checkout-column">
+                <section class="panel" aria-labelledby="order-title">
+                    <div class="section-heading"><h2 id="order-title">Order summary</h2><span class="count-badge" id="item-count">0 items</span></div>
+                    <div class="table-wrapper">
+                        <table class="order-table">
+                            <caption class="sr-only">Selected drinks, quantities, and subtotals</caption>
+                            <thead><tr><th scope="col">Item</th><th scope="col" class="quantity-column">Qty</th><th scope="col" class="money">Subtotal</th></tr></thead>
+                            <tbody id="cart-items"><tr class="empty-row"><td colspan="3">Your order is empty.<br><span class="muted">Selected drinks will appear here.</span></td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="order-total"><span>Total amount</span><strong id="order-total">₱0.00</strong></div>
+                </section>
+                <section class="panel" aria-labelledby="payment-title">
+                    <div class="section-heading"><h2 id="payment-title">Cash payment</h2><span class="muted">PHP</span></div>
+                    <form id="payment-form" novalidate>
+                        <label for="cash-amount">Amount paid</label>
+                        <!-- Preserve raw input for clear nonnumeric validation in Stage 3. -->
+                        <input id="cash-amount" name="cash" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="e.g. 200.00" aria-describedby="cash-help">
+                        <p id="cash-help" class="field-help">Enter a numeric cash amount in pesos, up to two decimal places.</p>
+                        <button id="pay-button" type="submit" class="button button-primary full-width" aria-describedby="stage-notice" disabled>Confirm payment</button>
+                    </form>
+                    <div id="payment-confirmation" class="payment-confirmation" role="status" hidden></div>
+                </section>
+            </div>
+            <section class="panel receipt-panel" aria-labelledby="receipt-title">
+                <div class="section-heading">
+                    <div><p class="eyebrow">TRANSACTION RECORD</p><h2 id="receipt-title">Digital receipt</h2></div>
+                    <button id="new-transaction" type="button" class="button button-secondary" aria-describedby="stage-notice" disabled>New Transaction</button>
+                </div>
+                <div id="receipt-content" class="receipt-content"><p class="muted">Your receipt will appear after a successful payment, with the items, quantities, subtotals, total, amount paid, change, and transaction reference.</p></div>
+            </section>
+        </main>
+        <footer class="app-footer">Milk Tea &amp; Beverage Shop POS · Local examination project</footer>
+    </div>
+</body>
+</html>
